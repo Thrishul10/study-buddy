@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Buddy Finder</title>
     <style>
-        /* General Styles */
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
@@ -19,39 +18,28 @@
             color: white;
             padding: 20px;
             text-align: center;
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: bold;
             text-transform: uppercase;
             border-bottom: 4px solid #333;
         }
 
-        #gender-selection, .profile-card, .chat-room, .video-call-room {
-            max-width: 600px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            display: none;
-        }
-
-        .profile-card.active, .chat-room.active, .video-call-room.active, #gender-selection {
-            display: block;
-        }
-
-        h2 {
+        #gender-selection {
             text-align: center;
-            color: #1E3A8A;
-            margin-bottom: 20px;
+            margin-top: 50px;
         }
 
-        button {
-            display: inline-block;
+        #gender-selection h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        #gender-selection button {
             background-color: #1E3A8A;
             color: white;
             border: none;
             padding: 12px 25px;
-            margin: 10px;
+            margin: 0 10px;
             font-size: 1rem;
             border-radius: 30px;
             cursor: pointer;
@@ -59,54 +47,126 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        button:hover {
+        #gender-selection button:hover {
             transform: scale(1.05);
             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
         }
 
+        .profile-card {
+            background: white;
+            margin: 30px auto;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-card h2 {
+            margin: 15px 0 5px;
+            font-size: 1.5rem;
+            color: #1E3A8A;
+        }
+
+        .profile-card p {
+            color: #555;
+            margin: 5px 20px 20px;
+            line-height: 1.5;
+        }
+
         .button-container {
-            text-align: center;
-        }
-
-        .friend-list ul {
-            padding: 0;
-            list-style: none;
-        }
-
-        .friend-list li {
-            padding: 10px;
-            border-bottom: 1px solid #ccc;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: space-around;
+            padding: 15px;
         }
 
-        .friend-buttons {
+        .button-container button {
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .button-container .add-friend {
+            background-color: #3B82F6;
+            color: white;
+        }
+
+        .button-container .skip {
+            background-color: #60A5FA;
+            color: white;
+        }
+
+        .button-container button:hover {
+            opacity: 0.9;
+        }
+
+        .actions-container {
             display: flex;
+            justify-content: center;
             gap: 10px;
-        }
-
-        .dark-mode-toggle {
-            text-align: center;
             margin-top: 20px;
         }
 
-        .dark {
-            background: linear-gradient(135deg, #1E3A8A, #4D79FF);
+        .actions-container button {
+            background-color: #4C51BF;
             color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
         }
 
-        .dark header {
-            background-color: #4D79FF;
+        .actions-container button:hover {
+            background-color: #6B7280;
+            transform: scale(1.05);
         }
 
-        .dark button {
-            background-color: #60A5FA;
+        .emoji {
+            font-size: 70px;
+            margin: 20px 0;
         }
 
-        .dark .profile-card, .dark .chat-room, .dark .video-call-room {
-            background: #333;
-            color: white;
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                font-size: 1.5rem;
+                padding: 15px;
+            }
+
+            #gender-selection h2 {
+                font-size: 1.2rem;
+            }
+
+            #gender-selection button {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+            }
+
+            .profile-card h2 {
+                font-size: 1.3rem;
+            }
+
+            .button-container button {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+            }
+
+            .actions-container button {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+            }
         }
     </style>
 </head>
@@ -117,101 +177,92 @@
 
     <div id="gender-selection">
         <h2>Find Your Study Buddy!</h2>
-        <div class="button-container">
-            <button onclick="startBrowsing()">Browse Profiles</button>
-        </div>
+        <button onclick="selectGender()">Browse Profiles</button>
     </div>
 
-    <div class="profile-card" id="profile-card">
+    <div class="profile-card" id="profile-card" style="display:none;">
         <div class="emoji" id="emoji">📚</div>
         <h2 id="name">Aarav Sharma</h2>
         <p id="bio">Looking for a study partner in biology and chemistry. Let's learn together!</p>
         <div class="button-container">
-            <button onclick="skipProfile()">Skip</button>
-            <button onclick="addFriend()">Add Friend</button>
+            <button class="skip" onclick="skipProfile()">Skip</button>
+            <button class="add-friend" onclick="addFriend()">Add Friend</button>
         </div>
-    </div>
-
-    <div class="chat-room" id="chat-room">
-        <h2>Chat Room</h2>
-        <div class="friend-list">
-            <ul id="friend-list"></ul>
+        <div class="actions-container">
+            <button onclick="startChat()">Start Chat</button>
+            <button onclick="startVideoCall()">Start Video Call</button>
         </div>
-    </div>
-
-    <div class="dark-mode-toggle">
-        <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
     </div>
 
     <script>
         const profiles = [
-            { name: "Aarav Sharma", bio: "Looking for a study partner in biology and chemistry.", emoji: "📚" },
-            { name: "Ananya Patel", bio: "Passionate about mathematics and physics.", emoji: "📐" },
-            { name: "Ishaan Gupta", bio: "Interested in programming and data science.", emoji: "💻" },
-            { name: "Saanvi Rao", bio: "History enthusiast! Let's dive into historical events.", emoji: "📖" },
+            {
+                name: "Aarav Sharma",
+                bio: "Studying biology and chemistry. Seeking a study buddy for lab experiments and theory discussions.",
+                emoji: "🧬",
+                areaOfStudy: "Biology and Chemistry"
+            },
+            {
+                name: "Ananya Patel",
+                bio: "Passionate about mathematics and physics. Looking for someone to collaborate on calculus and quantum physics.",
+                emoji: "📐",
+                areaOfStudy: "Mathematics and Physics"
+            },
+            {
+                name: "Ishaan Gupta",
+                bio: "Interested in programming and data science. Let's solve problems together and build cool projects!",
+                emoji: "💻",
+                areaOfStudy: "Computer Science"
+            },
+            {
+                name: "Saanvi Rao",
+                bio: "History enthusiast! Looking for a partner to dive into historical events and social sciences.",
+                emoji: "📖",
+                areaOfStudy: "History and Sociology"
+            }
         ];
 
         let currentIndex = 0;
-        let addedFriends = [];
 
-        const profileCard = document.getElementById('profile-card');
-        const chatRoom = document.getElementById('chat-room');
-        const friendListUl = document.getElementById('friend-list');
-
-        const startBrowsing = () => {
+        function selectGender() {
             document.getElementById('gender-selection').style.display = 'none';
-            profileCard.classList.add('active');
+            document.getElementById('profile-card').style.display = 'block';
             updateProfile();
-        };
+        }
 
-        const updateProfile = () => {
+        function updateProfile() {
             const profile = profiles[currentIndex];
-            document.getElementById('name').textContent = profile.name;
-            document.getElementById('bio').textContent = profile.bio;
-            document.getElementById('emoji').textContent = profile.emoji;
-        };
+            document.getElementById('name').innerText = profile.name;
+            document.getElementById('bio').innerText = `${profile.bio} (Focus: ${profile.areaOfStudy})`;
+            document.getElementById('emoji').innerText = profile.emoji;
+        }
 
-        const skipProfile = () => {
-            currentIndex = (currentIndex + 1) % profiles.length;
+        function addFriend() {
+            alert(`You added ${profiles[currentIndex].name} as your study buddy!`);
+            nextProfile();
+        }
+
+        function skipProfile() {
+            alert(`You skipped ${profiles[currentIndex].name}.`);
+            nextProfile();
+        }
+
+        function nextProfile() {
+            currentIndex++;
+            if (currentIndex >= profiles.length) {
+                alert("No more profiles to show. Let's start over!");
+                currentIndex = 0;
+            }
             updateProfile();
-        };
+        }
 
-        const addFriend = () => {
-            addedFriends.push(profiles[currentIndex]);
-            alert(`${profiles[currentIndex].name} added as your study buddy!`);
-            profileCard.classList.remove('active');
-            chatRoom.classList.add('active');
-            updateFriendList();
-        };
+        function startChat() {
+            alert("Chat functionality will be added soon!");
+        }
 
-        const updateFriendList = () => {
-            friendListUl.innerHTML = '';
-            addedFriends.forEach(friend => {
-                const li = document.createElement('li');
-                li.textContent = `${friend.name} - ${friend.emoji}`;
-
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.classList.add('friend-buttons');
-
-                const chatButton = document.createElement('button');
-                chatButton.textContent = "Chat";
-                chatButton.onclick = () => alert(`Chatting with ${friend.name}...`);
-
-                const callButton = document.createElement('button');
-                callButton.textContent = "Video Call";
-                callButton.onclick = () => alert(`Starting video call with ${friend.name}...`);
-
-                buttonsDiv.appendChild(chatButton);
-                buttonsDiv.appendChild(callButton);
-                li.appendChild(buttonsDiv);
-
-                friendListUl.appendChild(li);
-            });
-        };
-
-        const toggleDarkMode = () => {
-            document.body.classList.toggle('dark');
-        };
+        function startVideoCall() {
+            alert("Video call functionality will be added soon!");
+        }
     </script>
 </body>
 </html>
