@@ -119,7 +119,7 @@
                 document.getElementById('chat-room').style.display = 'block';
 
                 // Connect to socket.io
-                socket = io();
+                socket = io('https://study-buddy-ts83.onrender.com');
 
                 // Notify server of the new user
                 socket.emit('user-joined', userEmail);
