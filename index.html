@@ -1,268 +1,160 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Buddy Finder</title>
+    <title>NMAMIT Chat Room</title>
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #4D79FF, #7C9BFF);
+            background-color: #f4f4f9;
             color: #333;
         }
 
         header {
-            background-color: #1E3A8A;
+            background: #1E3A8A;
             color: white;
-            padding: 20px;
             text-align: center;
-            font-size: 2rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-bottom: 4px solid #333;
-        }
-
-        #gender-selection {
-            text-align: center;
-            margin-top: 50px;
-        }
-
-        #gender-selection h2 {
-            margin-bottom: 20px;
+            padding: 10px;
             font-size: 1.5rem;
         }
 
-        #gender-selection button {
-            background-color: #1E3A8A;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            margin: 0 10px;
-            font-size: 1rem;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        #login-page, #chat-room {
+            display: none;
+            margin: 50px auto;
+            text-align: center;
+            width: 80%;
+            max-width: 500px;
         }
 
-        #gender-selection button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        .input-group {
+            margin: 15px 0;
         }
 
-        .profile-card {
-            background: white;
-            margin: 30px auto;
+        input {
+            padding: 10px;
             width: 90%;
-            max-width: 400px;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .profile-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .profile-card h2 {
-            margin: 15px 0 5px;
-            font-size: 1.5rem;
-            color: #1E3A8A;
-        }
-
-        .profile-card p {
-            color: #555;
-            margin: 5px 20px 20px;
-            line-height: 1.5;
-        }
-
-        .button-container {
-            display: flex;
-            justify-content: space-around;
-            padding: 15px;
-        }
-
-        .button-container button {
-            border: none;
-            padding: 12px 25px;
-            border-radius: 30px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             font-size: 1rem;
-            cursor: pointer;
-            transition: 0.3s;
         }
 
-        .button-container .add-friend {
-            background-color: #3B82F6;
-            color: white;
-        }
-
-        .button-container .skip {
-            background-color: #60A5FA;
-            color: white;
-        }
-
-        .button-container button:hover {
-            opacity: 0.9;
-        }
-
-        .actions-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .actions-container button {
-            background-color: #4C51BF;
+        button {
+            padding: 10px 20px;
+            background: #1E3A8A;
             color: white;
             border: none;
-            padding: 12px 25px;
-            font-size: 1rem;
-            border-radius: 30px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.3s;
         }
 
-        .actions-container button:hover {
-            background-color: #6B7280;
-            transform: scale(1.05);
+        button:hover {
+            background: #4D79FF;
         }
 
-        .emoji {
-            font-size: 70px;
-            margin: 20px 0;
+        #chat-messages {
+            border: 1px solid #ddd;
+            background: white;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 20px;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            header {
-                font-size: 1.5rem;
-                padding: 15px;
-            }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+        }
 
-            #gender-selection h2 {
-                font-size: 1.2rem;
-            }
+        .own-message {
+            background: #DCF8C6;
+            text-align: right;
+        }
 
-            #gender-selection button {
-                font-size: 0.9rem;
-                padding: 10px 20px;
-            }
-
-            .profile-card h2 {
-                font-size: 1.3rem;
-            }
-
-            .button-container button {
-                font-size: 0.9rem;
-                padding: 10px 20px;
-            }
-
-            .actions-container button {
-                font-size: 0.9rem;
-                padding: 10px 20px;
-            }
+        .other-message {
+            background: #F1F0F0;
         }
     </style>
 </head>
 <body>
-    <header>
-        Study Buddy Finder
-    </header>
+    <header>NMAMIT Chat Room</header>
 
-    <div id="gender-selection">
-        <h2>Find Your Study Buddy!</h2>
-        <button onclick="selectGender()">Browse Profiles</button>
+    <!-- Login Page -->
+    <div id="login-page">
+        <h2>Login</h2>
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Enter your NMAMIT email" required>
+        </div>
+        <button onclick="handleLogin()">Login</button>
     </div>
 
-    <div class="profile-card" id="profile-card" style="display:none;">
-        <div class="emoji" id="emoji">📚</div>
-        <h2 id="name">Aarav Sharma</h2>
-        <p id="bio">Looking for a study partner in biology and chemistry. Let's learn together!</p>
-        <div class="button-container">
-            <button class="skip" onclick="skipProfile()">Skip</button>
-            <button class="add-friend" onclick="addFriend()">Add Friend</button>
-        </div>
-        <div class="actions-container">
-            <button onclick="startChat()">Start Chat</button>
-            <button onclick="startVideoCall()">Start Video Call</button>
+    <!-- Chat Room -->
+    <div id="chat-room">
+        <h2>Welcome to the Chat Room!</h2>
+        <p><strong>Online Users: </strong><span id="online-users">0</span></p>
+        <div id="chat-messages"></div>
+        <div class="input-group">
+            <input type="text" id="message-input" placeholder="Type a message">
+            <button onclick="sendMessage()">Send</button>
         </div>
     </div>
 
     <script>
-        const profiles = [
-            {
-                name: "Aarav Sharma",
-                bio: "Studying biology and chemistry. Seeking a study buddy for lab experiments and theory discussions.",
-                emoji: "🧬",
-                areaOfStudy: "Biology and Chemistry"
-            },
-            {
-                name: "Ananya Patel",
-                bio: "Passionate about mathematics and physics. Looking for someone to collaborate on calculus and quantum physics.",
-                emoji: "📐",
-                areaOfStudy: "Mathematics and Physics"
-            },
-            {
-                name: "Ishaan Gupta",
-                bio: "Interested in programming and data science. Let's solve problems together and build cool projects!",
-                emoji: "💻",
-                areaOfStudy: "Computer Science"
-            },
-            {
-                name: "Saanvi Rao",
-                bio: "History enthusiast! Looking for a partner to dive into historical events and social sciences.",
-                emoji: "📖",
-                areaOfStudy: "History and Sociology"
+        let socket;
+        let userEmail;
+
+        // Show login page initially
+        document.getElementById('login-page').style.display = 'block';
+
+        // Handle login
+        function handleLogin() {
+            const emailInput = document.getElementById('email').value;
+            if (emailInput.endsWith('@nmamit.in')) {
+                userEmail = emailInput;
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('chat-room').style.display = 'block';
+
+                // Connect to socket.io
+                socket = io();
+
+                // Notify server of the new user
+                socket.emit('user-joined', userEmail);
+
+                // Update online users
+                socket.on('update-users', (count) => {
+                    document.getElementById('online-users').innerText = count;
+                });
+
+                // Receive messages
+                socket.on('receive-message', (data) => {
+                    const chatMessages = document.getElementById('chat-messages');
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message');
+                    messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
+                    messageDiv.innerText = `${data.email}: ${data.message}`;
+                    chatMessages.appendChild(messageDiv);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
+            } else {
+                alert('Only NMAMIT email addresses are allowed!');
             }
-        ];
-
-        let currentIndex = 0;
-
-        function selectGender() {
-            document.getElementById('gender-selection').style.display = 'none';
-            document.getElementById('profile-card').style.display = 'block';
-            updateProfile();
         }
 
-        function updateProfile() {
-            const profile = profiles[currentIndex];
-            document.getElementById('name').innerText = profile.name;
-            document.getElementById('bio').innerText = `${profile.bio} (Focus: ${profile.areaOfStudy})`;
-            document.getElementById('emoji').innerText = profile.emoji;
-        }
-
-        function addFriend() {
-            alert(`You added ${profiles[currentIndex].name} as your study buddy!`);
-            nextProfile();
-        }
-
-        function skipProfile() {
-            alert(`You skipped ${profiles[currentIndex].name}.`);
-            nextProfile();
-        }
-
-        function nextProfile() {
-            currentIndex++;
-            if (currentIndex >= profiles.length) {
-                alert("No more profiles to show. Let's start over!");
-                currentIndex = 0;
+        // Send a message
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('send-message', { email: userEmail, message });
+                messageInput.value = '';
             }
-            updateProfile();
-        }
-
-        function startChat() {
-            alert("Chat functionality will be added soon!");
-        }
-
-        function startVideoCall() {
-            alert("Video call functionality will be added soon!");
         }
     </script>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </body>
 </html>
