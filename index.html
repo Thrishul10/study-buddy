@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Buddy Finder</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #4D79FF, #7C9BFF);
+            color: #333;
+        }
+
+        header {
+            background-color: #1E3A8A;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 4px solid #333;
+        }
+
+        #gender-selection, .profile-card, .chat-room, .video-call-room {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: none;
+        }
+
+        .profile-card.active, .chat-room.active, .video-call-room.active, #gender-selection {
+            display: block;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1E3A8A;
+            margin-bottom: 20px;
+        }
+
+        button {
+            display: inline-block;
+            background-color: #1E3A8A;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 10px;
+            font-size: 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .button-container {
+            text-align: center;
+        }
+
+        .friend-list ul {
+            padding: 0;
+            list-style: none;
+        }
+
+        .friend-list li {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .friend-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .dark-mode-toggle {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .dark {
+            background: linear-gradient(135deg, #1E3A8A, #4D79FF);
+            color: white;
+        }
+
+        .dark header {
+            background-color: #4D79FF;
+        }
+
+        .dark button {
+            background-color: #60A5FA;
+        }
+
+        .dark .profile-card, .dark .chat-room, .dark .video-call-room {
+            background: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        Study Buddy Finder
+    </header>
+
+    <div id="gender-selection">
+        <h2>Find Your Study Buddy!</h2>
+        <div class="button-container">
+            <button onclick="startBrowsing()">Browse Profiles</button>
+        </div>
+    </div>
+
+    <div class="profile-card" id="profile-card">
+        <div class="emoji" id="emoji">📚</div>
+        <h2 id="name">Aarav Sharma</h2>
+        <p id="bio">Looking for a study partner in biology and chemistry. Let's learn together!</p>
+        <div class="button-container">
+            <button onclick="skipProfile()">Skip</button>
+            <button onclick="addFriend()">Add Friend</button>
+        </div>
+    </div>
+
+    <div class="chat-room" id="chat-room">
+        <h2>Chat Room</h2>
+        <div class="friend-list">
+            <ul id="friend-list"></ul>
+        </div>
+    </div>
+
+    <div class="dark-mode-toggle">
+        <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    </div>
+
+    <script>
+        const profiles = [
+            { name: "Aarav Sharma", bio: "Looking for a study partner in biology and chemistry.", emoji: "📚" },
+            { name: "Ananya Patel", bio: "Passionate about mathematics and physics.", emoji: "📐" },
+            { name: "Ishaan Gupta", bio: "Interested in programming and data science.", emoji: "💻" },
+            { name: "Saanvi Rao", bio: "History enthusiast! Let's dive into historical events.", emoji: "📖" },
+        ];
+
+        let currentIndex = 0;
+        let addedFriends = [];
+
+        const profileCard = document.getElementById('profile-card');
+        const chatRoom = document.getElementById('chat-room');
+        const friendListUl = document.getElementById('friend-list');
+
+        const startBrowsing = () => {
+            document.getElementById('gender-selection').style.display = 'none';
+            profileCard.classList.add('active');
+            updateProfile();
+        };
+
+        const updateProfile = () => {
+            const profile = profiles[currentIndex];
+            document.getElementById('name').textContent = profile.name;
+            document.getElementById('bio').textContent = profile.bio;
+            document.getElementById('emoji').textContent = profile.emoji;
+        };
+
+        const skipProfile = () => {
+            currentIndex = (currentIndex + 1) % profiles.length;
+            updateProfile();
+        };
+
+        const addFriend = () => {
+            addedFriends.push(profiles[currentIndex]);
+            alert(`${profiles[currentIndex].name} added as your study buddy!`);
+            profileCard.classList.remove('active');
+            chatRoom.classList.add('active');
+            updateFriendList();
+        };
+
+        const updateFriendList = () => {
+            friendListUl.innerHTML = '';
+            addedFriends.forEach(friend => {
+                const li = document.createElement('li');
+                li.textContent = `${friend.name} - ${friend.emoji}`;
+
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.classList.add('friend-buttons');
+
+                const chatButton = document.createElement('button');
+                chatButton.textContent = "Chat";
+                chatButton.onclick = () => alert(`Chatting with ${friend.name}...`);
+
+                const callButton = document.createElement('button');
+                callButton.textContent = "Video Call";
+                callButton.onclick = () => alert(`Starting video call with ${friend.name}...`);
+
+                buttonsDiv.appendChild(chatButton);
+                buttonsDiv.appendChild(callButton);
+                li.appendChild(buttonsDiv);
+
+                friendListUl.appendChild(li);
+            });
+        };
+
+        const toggleDarkMode = () => {
+            document.body.classList.toggle('dark');
+        };
+    </script>
+</body>
+</html>
