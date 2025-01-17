@@ -1,3 +1,12 @@
+const cors = require('cors');
+
+// Enable CORS for your GitHub Pages domain
+app.use(cors({
+    origin: 'https://thrishul10.github.io', // Replace with your GitHub Pages URL
+    methods: ['GET', 'POST'],
+    credentials: true,
+}));
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
