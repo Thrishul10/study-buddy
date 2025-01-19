@@ -107,109 +107,94 @@
     </style>
 </head>
 <body>
-    <header>Study Buddy Finder</header>
+  <header>
+    <h1>Study Buddy Finder</h1>
+    <p><strong>Online Users: </strong><span id="online-users-count">0</span></p>
+</header>
 
-    <!-- Login Page -->
-    <div id="login-page">
-        <h2>Login</h2>
-        <div class="input-group">
-            <input type="email" id="email" placeholder="Enter your NMAMIT email" required>
-        </div>
-        <button onclick="handleLogin()">Login</button>
-    </div>
+<!-- Show list of online users -->
+<div id="online-users">
+    <h2>Users Online:</h2>
+    <ul id="users-list"></ul>
+</div>
 
-    <!-- User List Page -->
-    <div id="user-list-page">
-        <h2>Online Users</h2>
-        <div class="user-list" id="user-list"></div>
-    </div>
+<!-- Chat Interface -->
+<div id="chat-room" style="display: none;">
+    <h2>Chat Room</h2>
+    <div id="chat-messages" style="border: 1px solid #ddd; height: 300px; overflow-y: scroll; padding: 10px;"></div>
+    <input type="text" id="message-input" placeholder="Type a message" />
+    <button onclick="sendMessage()">Send</button>
+</div>
 
-    <!-- Chat Room -->
-    <div id="chat-room">
-        <h2>Chat Room</h2>
-        <div id="chat-messages" style="height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 20px;"></div>
-        <div class="input-group">
-            <input type="text" id="message-input" placeholder="Type a message">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
+<script>
+    const socket = io('https://your-backend-url.com'); // Replace with your backend URL
+    let currentRoom = '';
+    let currentUser = '';
 
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script>
-        let socket;
-        let userEmail;
+    // Handle user login
+    function handleLogin(email) {
+        currentUser = email;
+        socket.emit('user-joined', email);
+    }
 
-        // Show login page initially
-        document.getElementById('login-page').style.display = 'block';
+    // Update online users list
+    socket.on('update-users', ({ onlineUsers, count }) => {
+        document.getElementById('online-users-count').innerText = count;
+        const usersList = document.getElementById('users-list');
+        usersList.innerHTML = '';
 
-        function validateEmail(email) {
-            // Validate email starts with "nnm24" followed by exactly 5 characters and ends with "@nmamit.in"
-            return /^nnm24[a-zA-Z0-9]{5}@nmamit\.in$/.test(email);
-        }
-
-        function handleLogin() {
-            const emailInput = document.getElementById('email').value;
-            if (validateEmail(emailInput)) {
-                userEmail = emailInput;
-
-                // Connect to socket.io
-                socket = io('https://study-buddy-ts83.onrender.com');
-                socket.emit('user-joined', userEmail);
-
-                // Move to user list page
-                document.getElementById('login-page').style.display = 'none';
-                document.getElementById('user-list-page').style.display = 'block';
-
-                // Fetch and update online users
-                socket.on('update-users', (users) => {
-                    const userList = document.getElementById('user-list');
-                    userList.innerHTML = '';
-                    users.forEach((user) => {
-                        if (user !== userEmail) {
-                            const userDiv = document.createElement('div');
-                            userDiv.classList.add('user-item');
-                            userDiv.innerHTML = `
-                                <span>${user}</span>
-                                <button onclick="sendRequest('${user}')">Chat</button>
-                            `;
-                            userList.appendChild(userDiv);
-                        }
-                    });
-                });
-
-                // Handle incoming chat requests
-                socket.on('chat-request', (fromUser) => {
-                    if (confirm(`${fromUser} wants to chat with you. Accept?`)) {
-                        socket.emit('accept-request', { from: fromUser, to: userEmail });
-                    }
-                });
-
-                // Handle chat room creation
-                socket.on('chat-accepted', (room) => {
-                    document.getElementById('user-list-page').style.display = 'none';
-                    document.getElementById('chat-room').style.display = 'block';
-                    socket.emit('join-room', room);
-                });
-            } else {
-                alert('Invalid NMAMIT email. Must start with "nnm24", followed by 5 characters.');
+        onlineUsers.forEach((user) => {
+            if (user !== currentUser) {
+                const listItem = document.createElement('li');
+                listItem.innerText = user;
+                const requestButton = document.createElement('button');
+                requestButton.innerText = 'Request Chat';
+                requestButton.onclick = () => sendChatRequest(user);
+                listItem.appendChild(requestButton);
+                usersList.appendChild(listItem);
             }
-        }
+        });
+    });
 
-        function sendRequest(toUser) {
-            socket.emit('send-request', { from: userEmail, to: toUser });
-        }
+    // Send chat request
+    function sendChatRequest(to) {
+        socket.emit('send-request', { from: currentUser, to });
+    }
 
-        function sendMessage() {
-            const messageInput = document.getElementById('message-input');
-            const message = messageInput.value.trim();
-            if (message) {
-                socket.emit('send-message', message);
-                const chatMessages = document.getElementById('chat-messages');
-                chatMessages.innerHTML += `<div>You: ${message}</div>`;
-                messageInput.value = '';
-            }
+    // Handle receiving a chat request
+    socket.on('chat-request', (from) => {
+        const accept = confirm(`${from} wants to chat with you. Accept?`);
+        if (accept) {
+            socket.emit('accept-request', { from, to: currentUser });
         }
-    </script>
+    });
+
+    // Handle chat acceptance
+    socket.on('chat-accepted', ({ room }) => {
+        currentRoom = room;
+        document.getElementById('chat-room').style.display = 'block';
+    });
+
+    // Send a message
+    function sendMessage() {
+        const messageInput = document.getElementById('message-input');
+        const message = messageInput.value.trim();
+        if (message) {
+            socket.emit('send-message', { room: currentRoom, message });
+            messageInput.value = '';
+        }
+    }
+
+    // Receive a message
+    socket.on('receive-message', (message) => {
+        const chatMessages = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.innerText = message;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+</script>
+
 </body>
 </html>
 
