@@ -4,76 +4,41 @@ const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
-});
+const io = new Server(server);
 
-let onlineUsers = {}; // Stores online users and their socket IDs
+// Serve static files (Frontend)
+app.use(express.static(__dirname));
+
+// Track online users
+let onlineUsers = 0;
 
 io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
+    console.log('A user connected');
+    onlineUsers++;
 
-    let currentEmail;
+    // Update all clients with online user count
+    io.emit('update-users', onlineUsers);
 
     // Handle user joining
     socket.on('user-joined', (email) => {
-        currentEmail = email;
-        onlineUsers[email] = socket.id; // Map email to socket ID
-        console.log('User joined:', email);
-        updateUsersList();
+        console.log(${email} joined the chat);
     });
 
-    // Handle sending a chat request
-    socket.on('send-request', ({ from, to }) => {
-        const toSocketId = onlineUsers[to];
-        if (toSocketId) {
-            io.to(toSocketId).emit('chat-request', from);
-        }
+    // Handle message sending
+    socket.on('send-message', (data) => {
+        io.emit('receive-message', data); // Broadcast to all users
     });
 
-    // Handle accepting a chat request
-    socket.on('accept-request', ({ from, to }) => {
-        const room = `${from}-${to}`;
-        socket.join(room); // Join the room
-        const toSocketId = onlineUsers[to];
-        if (toSocketId) {
-            io.to(toSocketId).emit('chat-accepted', { room, from });
-            io.to(socket.id).emit('chat-accepted', { room, to });
-        }
-    });
-
-    // Handle joining a room
-    socket.on('join-room', (room) => {
-        socket.join(room);
-        console.log(`${socket.id} joined room: ${room}`);
-    });
-
-    // Handle sending messages in a room
-    socket.on('send-message', ({ room, message }) => {
-        io.to(room).emit('receive-message', message);
-    });
-
-    // Handle user disconnect
+    // Handle disconnection
     socket.on('disconnect', () => {
-        if (currentEmail && onlineUsers[currentEmail]) {
-            delete onlineUsers[currentEmail];
-            updateUsersList();
-        }
-        console.log('User disconnected:', socket.id);
+        console.log('A user disconnected');
+        onlineUsers--;
+        io.emit('update-users', onlineUsers);
     });
-
-    // Send updated users list to all clients
-    function updateUsersList() {
-        io.emit('update-users', {
-            onlineUsers: Object.keys(onlineUsers),
-            count: Object.keys(onlineUsers).length,
-        });
-    }
 });
 
-server.listen(5000, () => {
-    console.log('Server is running on port 5000');
+// Start the server
+const PORT = 3000;
+server.listen(PORT, () => {
+    console.log(Server is running on http://localhost:${PORT});
 });
