@@ -3,84 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studdy Buddy</title>
+    <title>Study Buddy Finder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
+            background: linear-gradient(135deg, #1E3A8A, #4D79FF);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
 
         header {
-            background: #1E3A8A;
-            color: white;
+            width: 100%;
             text-align: center;
-            padding: 10px;
-            font-size: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px 0;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
         }
 
-        #login-page, #chat-room {
+        #login-page, #user-list-page, #chat-room {
             display: none;
-            margin: 50px auto;
-            text-align: center;
-            width: 80%;
+            background: #fff;
+            color: #333;
+            width: 90%;
             max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            text-align: center;
+        }
+
+        h2 {
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1E3A8A;
         }
 
         .input-group {
-            margin: 15px 0;
+            margin: 20px 0;
         }
 
         input {
-            padding: 10px;
-            width: 90%;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 12px;
+            width: 100%;
+            border: 2px solid #ccc;
+            border-radius: 8px;
             font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #4D79FF;
         }
 
         button {
-            padding: 10px 20px;
-            background: #1E3A8A;
-            color: white;
+            padding: 12px 20px;
+            font-size: 1rem;
+            background: #4D79FF;
+            color: #fff;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s ease, transform 0.2s ease;
         }
 
         button:hover {
-            background: #4D79FF;
+            background: #1E3A8A;
+            transform: translateY(-3px);
         }
 
-        #chat-messages {
-            border: 1px solid #ddd;
-            background: white;
-            height: 300px;
-            overflow-y: scroll;
+        .user-list {
+            text-align: left;
+        }
+
+        .user-item {
             padding: 10px;
-            margin-bottom: 20px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .message {
-            margin: 5px 0;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        .own-message {
-            background: #DCF8C6;
-            text-align: right;
-        }
-
-        .other-message {
-            background: #F1F0F0;
+        .user-item button {
+            padding: 5px 10px;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body>
-    <header>Study Buddy</header>
+    <header>Study Buddy Finder</header>
 
     <!-- Login Page -->
     <div id="login-page">
@@ -91,17 +118,23 @@
         <button onclick="handleLogin()">Login</button>
     </div>
 
+    <!-- User List Page -->
+    <div id="user-list-page">
+        <h2>Online Users</h2>
+        <div class="user-list" id="user-list"></div>
+    </div>
+
     <!-- Chat Room -->
     <div id="chat-room">
-        <h2>Welcome to the Chat Room!</h2>
-        <p><strong>Online Users: </strong><span id="online-users">0</span></p>
-        <div id="chat-messages"></div>
+        <h2>Chat Room</h2>
+        <div id="chat-messages" style="height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 20px;"></div>
         <div class="input-group">
             <input type="text" id="message-input" placeholder="Type a message">
             <button onclick="sendMessage()">Send</button>
         </div>
     </div>
 
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script>
         let socket;
         let userEmail;
@@ -109,51 +142,73 @@
         // Show login page initially
         document.getElementById('login-page').style.display = 'block';
 
-        // Handle login
+        function validateEmail(email) {
+            // Validate email starts with "nnm24" followed by exactly 5 characters and ends with "@nmamit.in"
+            return /^nnm24[a-zA-Z0-9]{5}@nmamit\.in$/.test(email);
+        }
+
         function handleLogin() {
             const emailInput = document.getElementById('email').value;
-            if (emailInput.endsWith('@nmamit.in')) {
+            if (validateEmail(emailInput)) {
                 userEmail = emailInput;
-                document.getElementById('login-page').style.display = 'none';
-                document.getElementById('chat-room').style.display = 'block';
 
                 // Connect to socket.io
                 socket = io('https://study-buddy-ts83.onrender.com');
-
-                // Notify server of the new user
                 socket.emit('user-joined', userEmail);
 
-                // Update online users
-                socket.on('update-users', (count) => {
-                    document.getElementById('online-users').innerText = count;
+                // Move to user list page
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('user-list-page').style.display = 'block';
+
+                // Fetch and update online users
+                socket.on('update-users', (users) => {
+                    const userList = document.getElementById('user-list');
+                    userList.innerHTML = '';
+                    users.forEach((user) => {
+                        if (user !== userEmail) {
+                            const userDiv = document.createElement('div');
+                            userDiv.classList.add('user-item');
+                            userDiv.innerHTML = `
+                                <span>${user}</span>
+                                <button onclick="sendRequest('${user}')">Chat</button>
+                            `;
+                            userList.appendChild(userDiv);
+                        }
+                    });
                 });
 
-                // Receive messages
-                socket.on('receive-message', (data) => {
-                    const chatMessages = document.getElementById('chat-messages');
-                    const messageDiv = document.createElement('div');
-                    messageDiv.classList.add('message');
-                    messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
-                    messageDiv.innerText = `${data.email}: ${data.message}`;
-                    chatMessages.appendChild(messageDiv);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                // Handle incoming chat requests
+                socket.on('chat-request', (fromUser) => {
+                    if (confirm(`${fromUser} wants to chat with you. Accept?`)) {
+                        socket.emit('accept-request', { from: fromUser, to: userEmail });
+                    }
+                });
+
+                // Handle chat room creation
+                socket.on('chat-accepted', (room) => {
+                    document.getElementById('user-list-page').style.display = 'none';
+                    document.getElementById('chat-room').style.display = 'block';
+                    socket.emit('join-room', room);
                 });
             } else {
-                alert('Only NMAMIT email addresses are allowed!');
+                alert('Invalid NMAMIT email. Must start with "nnm24", followed by 5 characters.');
             }
         }
 
-        // Send a message
+        function sendRequest(toUser) {
+            socket.emit('send-request', { from: userEmail, to: toUser });
+        }
+
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const message = messageInput.value.trim();
             if (message) {
-                socket.emit('send-message', { email: userEmail, message });
+                socket.emit('send-message', message);
+                const chatMessages = document.getElementById('chat-messages');
+                chatMessages.innerHTML += `<div>You: ${message}</div>`;
                 messageInput.value = '';
             }
         }
     </script>
-
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </body>
 </html>
