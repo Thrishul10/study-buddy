@@ -1,12 +1,17 @@
-const express = require('express');
+const express = require('express'); 
 const http = require('http');
+const cors = require('cors');
 const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
+
+// Enable CORS for all routes
+app.use(cors());
+
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: "*",  // Allow frontend requests from any origin
         methods: ["GET", "POST"]
     }
 });
@@ -16,13 +21,13 @@ let onlineUsers = {}; // Stores online users and their socket IDs
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
-    let currentEmail;
+    let currentEmail = null;
 
     // Handle user joining
     socket.on('user-joined', (email) => {
         currentEmail = email;
-        onlineUsers[email] = socket.id; // Map email to socket ID
-        console.log('User joined:', email);
+        onlineUsers[email] = socket.id; // Store email with socket ID
+        console.log(`User joined: ${email}`);
         updateUsersList();
     });
 
@@ -36,9 +41,10 @@ io.on('connection', (socket) => {
 
     // Handle accepting a chat request
     socket.on('accept-request', ({ from, to }) => {
-        const room = `${from}-${to}`;
-        socket.join(room); // Join the room
+        const room = [from, to].sort().join('-'); // Create consistent room name
+        socket.join(room);
         const toSocketId = onlineUsers[to];
+
         if (toSocketId) {
             io.to(toSocketId).emit('chat-accepted', { room, from });
             io.to(socket.id).emit('chat-accepted', { room, to });
@@ -73,7 +79,6 @@ io.on('connection', (socket) => {
         });
     }
 });
-
 
 server.listen(5000, () => {
     console.log('Server is running on port 5000');
