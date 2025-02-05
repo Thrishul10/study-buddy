@@ -1,85 +1,80 @@
-const express = require('express'); 
-const http = require('http');
-const cors = require('cors');
-const { Server } = require('socket.io');
+const socket = io("http://localhost:5000"); // Connect to the backend
+let currentUser = "";
 
-const app = express();
-const server = http.createServer(app);
+// Handle login
+function handleLogin() {
+    const email = document.getElementById("email").value;
+    if (email.trim() === "") {
+        alert("Please enter a valid email.");
+        return;
+    }
 
-// Enable CORS for all routes
-app.use(cors());
+    currentUser = email;
+    localStorage.setItem("currentUser", email); // Store user email
+    document.getElementById("login-container").style.display = "none";
+    document.getElementById("chat-container").style.display = "block";
 
-const io = new Server(server, {
-    cors: {
-        origin: "*",  // Allow frontend requests from any origin
-        methods: ["GET", "POST"]
+    socket.emit("user-joined", email); // Notify the server
+}
+
+// Listen for online users update
+socket.on("update-users", ({ onlineUsers, count }) => {
+    console.log("Updated online users:", onlineUsers, count);
+    
+    document.getElementById("online-users-count").innerText = count; 
+
+    const usersList = document.getElementById("users-list");
+    usersList.innerHTML = ""; // Clear existing list
+
+    onlineUsers.forEach(user => {
+        if (user !== currentUser) { // Don't show yourself in the list
+            const listItem = document.createElement("li");
+            listItem.innerText = user;
+
+            const requestButton = document.createElement("button");
+            requestButton.innerText = "Request Chat";
+            requestButton.onclick = () => sendChatRequest(user);
+
+            listItem.appendChild(requestButton);
+            usersList.appendChild(listItem);
+        }
+    });
+});
+
+// Send a chat request to another user
+function sendChatRequest(toUser) {
+    socket.emit("send-request", { from: currentUser, to: toUser });
+    alert(`Chat request sent to ${toUser}`);
+}
+
+// Listen for incoming chat requests
+socket.on("chat-request", (fromUser) => {
+    if (confirm(`${fromUser} wants to chat. Accept?`)) {
+        socket.emit("accept-request", { from: fromUser, to: currentUser });
     }
 });
 
-let onlineUsers = {}; // Stores online users and their socket IDs
-
-io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
-
-    let currentEmail = null;
-
-    // Handle user joining
-    socket.on('user-joined', (email) => {
-        currentEmail = email;
-        onlineUsers[email] = socket.id; // Store email with socket ID
-        console.log(`User joined: ${email}`);
-        updateUsersList();
-    });
-
-    // Handle sending a chat request
-    socket.on('send-request', ({ from, to }) => {
-        const toSocketId = onlineUsers[to];
-        if (toSocketId) {
-            io.to(toSocketId).emit('chat-request', from);
-        }
-    });
-
-    // Handle accepting a chat request
-    socket.on('accept-request', ({ from, to }) => {
-        const room = [from, to].sort().join('-'); // Create consistent room name
-        socket.join(room);
-        const toSocketId = onlineUsers[to];
-
-        if (toSocketId) {
-            io.to(toSocketId).emit('chat-accepted', { room, from });
-            io.to(socket.id).emit('chat-accepted', { room, to });
-        }
-    });
-
-    // Handle joining a room
-    socket.on('join-room', (room) => {
-        socket.join(room);
-        console.log(`${socket.id} joined room: ${room}`);
-    });
-
-    // Handle sending messages in a room
-    socket.on('send-message', ({ room, message }) => {
-        io.to(room).emit('receive-message', message);
-    });
-
-    // Handle user disconnect
-    socket.on('disconnect', () => {
-        if (currentEmail && onlineUsers[currentEmail]) {
-            delete onlineUsers[currentEmail];
-            updateUsersList();
-        }
-        console.log('User disconnected:', socket.id);
-    });
-
-    // Send updated users list to all clients
-    function updateUsersList() {
-        io.emit('update-users', {
-            onlineUsers: Object.keys(onlineUsers),
-            count: Object.keys(onlineUsers).length,
-        });
-    }
+// Handle chat acceptance
+socket.on("chat-accepted", ({ room, from }) => {
+    alert(`Chat started with ${from}`);
+    socket.emit("join-room", room);
 });
 
-server.listen(5000, () => {
-    console.log('Server is running on port 5000');
+// Handle sending messages
+function sendMessage() {
+    const message = document.getElementById("message").value;
+    const room = localStorage.getItem("currentRoom");
+
+    if (message.trim() !== "") {
+        socket.emit("send-message", { room, message });
+        document.getElementById("message").value = "";
+    }
+}
+
+// Listen for incoming messages
+socket.on("receive-message", (message) => {
+    const messagesContainer = document.getElementById("messages");
+    const messageElement = document.createElement("p");
+    messageElement.innerText = message;
+    messagesContainer.appendChild(messageElement);
 });
