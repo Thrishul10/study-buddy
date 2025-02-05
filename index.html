@@ -3,59 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Buddy Finder</title>
-    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <title>Studdy Buddy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        header {
+            background: #1E3A8A;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 1.5rem;
+        }
+
+        #login-page, #chat-room {
+            display: none;
+            margin: 50px auto;
+            text-align: center;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        input {
+            padding: 10px;
+            width: 90%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #1E3A8A;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4D79FF;
+        }
+
+        #chat-messages {
+            border: 1px solid #ddd;
+            background: white;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .own-message {
+            background: #DCF8C6;
+            text-align: right;
+        }
+
+        .other-message {
+            background: #F1F0F0;
+        }
+    </style>
 </head>
 <body>
+    <header>Study Buddy</header>
 
-    <!-- Login Section -->
-    <div id="login-section" style="text-align: center; margin-top: 50px;">
-        <h2>Enter Your Email to Join</h2>
-        <input type="text" id="emailInput" placeholder="Enter your email">
-        <button onclick="joinChat()">Join</button>
+    <!-- Login Page -->
+    <div id="login-page">
+        <h2>Login</h2>
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Enter your NMAMIT email" required>
+        </div>
+        <button onclick="handleLogin()">Login</button>
     </div>
 
-    <!-- Main Chat Section (Initially Hidden) -->
-    <div id="chat-section" style="display: none; text-align: center;">
-        <div style="background: green; padding: 10px; color: white;">
-            <h2>Study Buddy Finder</h2>
-            <h3><b>Online Users: <span id="online-count">0</span></b></h3>
+    <!-- Chat Room -->
+    <div id="chat-room">
+        <h2>Welcome to the Chat Room!</h2>
+        <p><strong>Online Users: </strong><span id="online-users">0</span></p>
+        <div id="chat-messages"></div>
+        <div class="input-group">
+            <input type="text" id="message-input" placeholder="Type a message">
+            <button onclick="sendMessage()">Send</button>
         </div>
-
-        <h3>Users Online</h3>
-        <ul id="users-list" style="list-style-type: none; padding: 0;"></ul>
     </div>
 
     <script>
-        const socket = io("http://localhost:5000"); // Connect to backend
-        let userEmail = "";
+        let socket;
+        let userEmail;
 
-        function joinChat() {
-            userEmail = document.getElementById("emailInput").value.trim();
-            if (userEmail === "") {
-                alert("Please enter a valid email!");
-                return;
+        // Show login page initially
+        document.getElementById('login-page').style.display = 'block';
+
+        // Handle login
+        function handleLogin() {
+            const emailInput = document.getElementById('email').value;
+            if (emailInput.endsWith('@nmamit.in')) {
+                userEmail = emailInput;
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('chat-room').style.display = 'block';
+
+                // Connect to socket.io
+                socket = io('https://study-buddy-ts83.onrender.com');
+
+                // Notify server of the new user
+                socket.emit('user-joined', userEmail);
+
+                // Update online users
+                socket.on('update-users', (count) => {
+                    document.getElementById('online-users').innerText = count;
+                });
+
+                // Receive messages
+                socket.on('receive-message', (data) => {
+                    const chatMessages = document.getElementById('chat-messages');
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message');
+                    messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
+                    messageDiv.innerText = ${data.email}: ${data.message};
+                    chatMessages.appendChild(messageDiv);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
+            } else {
+                alert('Only NMAMIT email addresses are allowed!');
             }
-
-            socket.emit("user-joined", userEmail);
-
-            // Hide login and show chat section
-            document.getElementById("login-section").style.display = "none";
-            document.getElementById("chat-section").style.display = "block";
         }
 
-        socket.on("update-users", (data) => {
-            document.getElementById("online-count").innerText = data.count;
-            let usersList = document.getElementById("users-list");
-            usersList.innerHTML = "";
-
-            data.onlineUsers.forEach(email => {
-                let li = document.createElement("li");
-                li.innerText = email;
-                usersList.appendChild(li);
-            });
-        });
+        // Send a message
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('send-message', { email: userEmail, message });
+                messageInput.value = '';
+            }
+        }
     </script>
 
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </body>
 </html>
