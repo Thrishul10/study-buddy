@@ -134,7 +134,7 @@
                     const messageDiv = document.createElement('div');
                     messageDiv.classList.add('message');
                     messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
-                    messageDiv.innerText = ${data.email}: ${data.message};
+                    messageDiv.innerText = `${data.email}: ${data.message}`;
                     chatMessages.appendChild(messageDiv);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 });
