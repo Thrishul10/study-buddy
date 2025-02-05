@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studdy Buddy</title>
+    <title>Study Buddy Finder</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f9;
+            background-color: #f9f9f9;
             color: #333;
         }
 
         header {
-            background: #1E3A8A;
+            background-color: #4CAF50;
             color: white;
             text-align: center;
-            padding: 10px;
-            font-size: 1.5rem;
+            padding: 20px;
+            font-size: 1.8rem;
         }
 
         #login-page, #chat-room {
@@ -33,7 +33,7 @@
             margin: 15px 0;
         }
 
-        input {
+        input, button {
             padding: 10px;
             width: 90%;
             border: 1px solid #ccc;
@@ -42,24 +42,44 @@
         }
 
         button {
-            padding: 10px 20px;
-            background: #1E3A8A;
+            background-color: #4CAF50;
             color: white;
-            border: none;
-            border-radius: 5px;
             cursor: pointer;
         }
 
         button:hover {
-            background: #4D79FF;
+            background-color: #45a049;
+        }
+
+        #online-users {
+            margin: 20px auto;
+            width: 80%;
+            max-width: 500px;
+            text-align: left;
+        }
+
+        #users-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #users-list li {
+            background-color: #f1f1f1;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         #chat-messages {
             border: 1px solid #ddd;
-            background: white;
             height: 300px;
-            overflow-y: scroll;
+            overflow-y: auto;
             padding: 10px;
+            background-color: #fff;
             margin-bottom: 20px;
         }
 
@@ -70,19 +90,21 @@
         }
 
         .own-message {
-            background: #DCF8C6;
+            background-color: #e1f5c4;
             text-align: right;
         }
 
         .other-message {
-            background: #F1F0F0;
+            background-color: #f1f0f0;
         }
     </style>
 </head>
 <body>
-    <header>Study Buddy</header>
+    <header>
+        Study Buddy Finder
+        <p><strong>Online Users:</strong> <span id="online-users-count">0</span></p>
+    </header>
 
-    <!-- Login Page -->
     <div id="login-page">
         <h2>Login</h2>
         <div class="input-group">
@@ -91,69 +113,89 @@
         <button onclick="handleLogin()">Login</button>
     </div>
 
-    <!-- Chat Room -->
-    <div id="chat-room">
-        <h2>Welcome to the Chat Room!</h2>
-        <p><strong>Online Users: </strong><span id="online-users">0</span></p>
-        <div id="chat-messages"></div>
-        <div class="input-group">
-            <input type="text" id="message-input" placeholder="Type a message">
-            <button onclick="sendMessage()">Send</button>
-        </div>
+    <div id="online-users">
+        <h2>Users Online</h2>
+        <ul id="users-list"></ul>
     </div>
 
+    <div id="chat-room">
+        <h2>Chat Room</h2>
+        <div id="chat-messages"></div>
+        <input type="text" id="message-input" placeholder="Type a message">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script>
-        let socket;
-        let userEmail;
+        const socket = io('https://study-buddy-ts83.onrender.com'); // Replace with your backend URL
+        let currentUser = '';
+        let currentRoom = '';
 
-        // Show login page initially
-        document.getElementById('login-page').style.display = 'block';
-
-        // Handle login
         function handleLogin() {
-            const emailInput = document.getElementById('email').value;
-            if (emailInput.endsWith('@nmamit.in')) {
-                userEmail = emailInput;
+            const emailInput = document.getElementById('email').value.trim();
+            const emailRegex = /^nnm24[a-zA-Z0-9]{5}@nmamit\.in$/;
+
+            if (emailRegex.test(emailInput)) {
+                currentUser = emailInput;
                 document.getElementById('login-page').style.display = 'none';
-                document.getElementById('chat-room').style.display = 'block';
-
-                // Connect to socket.io
-                socket = io('https://study-buddy-ts83.onrender.com');
-
-                // Notify server of the new user
-                socket.emit('user-joined', userEmail);
-
-                // Update online users
-                socket.on('update-users', (count) => {
-                    document.getElementById('online-users').innerText = count;
-                });
-
-                // Receive messages
-                socket.on('receive-message', (data) => {
-                    const chatMessages = document.getElementById('chat-messages');
-                    const messageDiv = document.createElement('div');
-                    messageDiv.classList.add('message');
-                    messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
-                    messageDiv.innerText = ${data.email}: ${data.message};
-                    chatMessages.appendChild(messageDiv);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                });
+                socket.emit('user-joined', emailInput);
             } else {
-                alert('Only NMAMIT email addresses are allowed!');
+                alert('Enter a valid NMAMIT email (e.g., nnm24xxxxx@nmamit.in)');
             }
         }
 
-        // Send a message
+        socket.on('update-users', ({ onlineUsers, count }) => {
+            document.getElementById('online-users-count').innerText = count;
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = '';
+
+            onlineUsers.forEach(user => {
+                if (user !== currentUser) {
+                    const listItem = document.createElement('li');
+                    listItem.innerText = user;
+                    const requestButton = document.createElement('button');
+                    requestButton.innerText = 'Request Chat';
+                    requestButton.onclick = () => sendChatRequest(user);
+                    listItem.appendChild(requestButton);
+                    usersList.appendChild(listItem);
+                }
+            });
+        });
+
+        function sendChatRequest(to) {
+            socket.emit('send-request', { from: currentUser, to });
+        }
+
+        socket.on('chat-request', (from) => {
+            const accept = confirm(`${from} wants to chat with you. Accept?`);
+            if (accept) {
+                socket.emit('accept-request', { from, to: currentUser });
+            }
+        });
+
+        socket.on('chat-accepted', ({ room }) => {
+            currentRoom = room;
+            document.getElementById('online-users').style.display = 'none';
+            document.getElementById('chat-room').style.display = 'block';
+        });
+
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const message = messageInput.value.trim();
             if (message) {
-                socket.emit('send-message', { email: userEmail, message });
+                socket.emit('send-message', { room: currentRoom, message: `${currentUser}: ${message}` });
                 messageInput.value = '';
             }
         }
-    </script>
 
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+        socket.on('receive-message', (message) => {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerText = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+    </script>
 </body>
 </html>
