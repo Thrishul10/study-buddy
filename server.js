@@ -16,8 +16,11 @@ let onlineUsers = {}; // Stores online users and their socket IDs
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
+    let currentEmail;
+
     // Handle user joining
     socket.on('user-joined', (email) => {
+        currentEmail = email;
         onlineUsers[email] = socket.id; // Map email to socket ID
         console.log('User joined:', email);
         updateUsersList();
@@ -34,8 +37,12 @@ io.on('connection', (socket) => {
     // Handle accepting a chat request
     socket.on('accept-request', ({ from, to }) => {
         const room = `${from}-${to}`;
-        io.to(onlineUsers[from]).emit('chat-accepted', room);
-        io.to(onlineUsers[to]).emit('chat-accepted', room);
+        socket.join(room); // Join the room
+        const toSocketId = onlineUsers[to];
+        if (toSocketId) {
+            io.to(toSocketId).emit('chat-accepted', { room, from });
+            io.to(socket.id).emit('chat-accepted', { room, to });
+        }
     });
 
     // Handle joining a room
@@ -51,21 +58,22 @@ io.on('connection', (socket) => {
 
     // Handle user disconnect
     socket.on('disconnect', () => {
-        for (const email in onlineUsers) {
-            if (onlineUsers[email] === socket.id) {
-                delete onlineUsers[email];
-                break;
-            }
+        if (currentEmail && onlineUsers[currentEmail]) {
+            delete onlineUsers[currentEmail];
+            updateUsersList();
         }
-        updateUsersList();
         console.log('User disconnected:', socket.id);
     });
 
     // Send updated users list to all clients
     function updateUsersList() {
-        io.emit('update-users', Object.keys(onlineUsers));
+        io.emit('update-users', {
+            onlineUsers: Object.keys(onlineUsers),
+            count: Object.keys(onlineUsers).length,
+        });
     }
 });
+
 
 server.listen(5000, () => {
     console.log('Server is running on port 5000');
