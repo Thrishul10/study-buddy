@@ -21,7 +21,7 @@
             font-size: 1.5rem;
         }
 
-        .container {
+        #login-page, #subject-page, #chat-room {
             display: none;
             margin: 50px auto;
             text-align: center;
@@ -33,7 +33,7 @@
             margin: 15px 0;
         }
 
-        input, select {
+        input {
             padding: 10px;
             width: 90%;
             border: 1px solid #ccc;
@@ -48,6 +48,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin: 5px;
         }
 
         button:hover {
@@ -77,13 +78,31 @@
         .other-message {
             background: #F1F0F0;
         }
+
+        .subject-btn {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .subject-btn:hover {
+            background: #0056b3;
+        }
     </style>
 </head>
 <body>
     <header>Study Buddy</header>
 
     <!-- Login Page -->
-    <div id="login-page" class="container">
+    <div id="login-page">
         <h2>Login</h2>
         <div class="input-group">
             <input type="email" id="email" placeholder="Enter your NMAMIT email" required>
@@ -91,26 +110,21 @@
         <button onclick="handleLogin()">Login</button>
     </div>
 
-    <!-- Interest Selection Page -->
-    <div id="interest-page" class="container">
-        <h2>Select Your Study Interest</h2>
-        <div class="input-group">
-            <select id="interest">
-                <option value="Computer Science">Computer Science</option>
-                <option value="Biology">Biology</option>
-                <option value="Chemistry">Chemistry</option>
-                <option value="Physics">Physics</option>
-                <option value="Mathematics">Mathematics</option>
-            </select>
-        </div>
-        <button onclick="selectInterest()">Continue</button>
+    <!-- Subject Selection Page -->
+    <div id="subject-page">
+        <h2>Select a Subject</h2>
+        <button class="subject-btn" onclick="joinSubject('CS')">Computer Science</button>
+        <button class="subject-btn" onclick="joinSubject('Bio')">Biology</button>
+        <button class="subject-btn" onclick="joinSubject('Maths')">Mathematics</button>
+        <button class="subject-btn" onclick="joinSubject('Physics')">Physics</button>
+        <button class="subject-btn" onclick="joinSubject('Chemistry')">Chemistry</button>
+        <button class="subject-btn" onclick="joinSubject('Electronics')">Electronics</button>
     </div>
 
     <!-- Chat Room -->
-    <div id="chat-room" class="container">
-        <h2>Welcome to the Chat Room!</h2>
+    <div id="chat-room">
+        <h2 id="room-title">Chat Room</h2>
         <p><strong>Online Users: </strong><span id="online-users">0</span></p>
-        <p><strong>Interest: </strong><span id="user-interest"></span></p>
         <div id="chat-messages"></div>
         <div class="input-group">
             <input type="text" id="message-input" placeholder="Type a message">
@@ -122,7 +136,7 @@
     <script>
         let socket;
         let userEmail;
-        let userInterest;
+        let currentSubject = '';
 
         // Show login page initially
         document.getElementById('login-page').style.display = 'block';
@@ -133,41 +147,44 @@
             if (emailInput.endsWith('@nmamit.in')) {
                 userEmail = emailInput;
                 document.getElementById('login-page').style.display = 'none';
-                document.getElementById('interest-page').style.display = 'block';
+                document.getElementById('subject-page').style.display = 'block';
+
+                // Connect to socket.io
+                socket = io('https://study-buddy-ts83.onrender.com');
+
+                // Notify server of new user
+                socket.emit('user-joined', userEmail);
             } else {
                 alert('Only NMAMIT email addresses are allowed!');
             }
         }
 
-        // Handle interest selection
-        function selectInterest() {
-            userInterest = document.getElementById('interest').value;
-            document.getElementById('interest-page').style.display = 'none';
+        // User selects a subject
+        function joinSubject(subject) {
+            currentSubject = subject;
+            document.getElementById('subject-page').style.display = 'none';
             document.getElementById('chat-room').style.display = 'block';
+            document.getElementById('room-title').innerText = subject + ' Chat Room';
 
-            // Connect to socket.io
-            socket = io('https://study-buddy-ts83.onrender.com');
+            // Join the specific subject room
+            socket.emit('join-room', { subject, userEmail });
 
-            // Notify server of the new user
-            socket.emit('user-joined', { email: userEmail, interest: userInterest });
-
-            // Update online users
-            socket.on('update-users', (data) => {
-                document.getElementById('online-users').innerText = data.count;
+            // Update online users in this room
+            socket.on('update-room-users', (count) => {
+                document.getElementById('online-users').innerText = count;
             });
-
-            // Update user interest display
-            document.getElementById('user-interest').innerText = userInterest;
 
             // Receive messages
             socket.on('receive-message', (data) => {
-                const chatMessages = document.getElementById('chat-messages');
-                const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message');
-                messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
-                messageDiv.innerText = `${data.email}: ${data.message}`;
-                chatMessages.appendChild(messageDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                if (data.subject === currentSubject) {
+                    const chatMessages = document.getElementById('chat-messages');
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message');
+                    messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
+                    messageDiv.innerText = `${data.email}: ${data.message}`;
+                    chatMessages.appendChild(messageDiv);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
             });
         }
 
@@ -176,7 +193,7 @@
             const messageInput = document.getElementById('message-input');
             const message = messageInput.value.trim();
             if (message) {
-                socket.emit('send-message', { email: userEmail, message });
+                socket.emit('send-message', { email: userEmail, message, subject: currentSubject });
                 messageInput.value = '';
             }
         }
