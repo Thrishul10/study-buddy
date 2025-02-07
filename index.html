@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studdy Buddy</title>
+    <title>Study Buddy</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,7 +21,7 @@
             font-size: 1.5rem;
         }
 
-        #login-page, #chat-room {
+        .container {
             display: none;
             margin: 50px auto;
             text-align: center;
@@ -33,7 +33,7 @@
             margin: 15px 0;
         }
 
-        input {
+        input, select {
             padding: 10px;
             width: 90%;
             border: 1px solid #ccc;
@@ -83,7 +83,7 @@
     <header>Study Buddy</header>
 
     <!-- Login Page -->
-    <div id="login-page">
+    <div id="login-page" class="container">
         <h2>Login</h2>
         <div class="input-group">
             <input type="email" id="email" placeholder="Enter your NMAMIT email" required>
@@ -91,10 +91,26 @@
         <button onclick="handleLogin()">Login</button>
     </div>
 
+    <!-- Interest Selection Page -->
+    <div id="interest-page" class="container">
+        <h2>Select Your Study Interest</h2>
+        <div class="input-group">
+            <select id="interest">
+                <option value="Computer Science">Computer Science</option>
+                <option value="Biology">Biology</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Physics">Physics</option>
+                <option value="Mathematics">Mathematics</option>
+            </select>
+        </div>
+        <button onclick="selectInterest()">Continue</button>
+    </div>
+
     <!-- Chat Room -->
-    <div id="chat-room">
+    <div id="chat-room" class="container">
         <h2>Welcome to the Chat Room!</h2>
         <p><strong>Online Users: </strong><span id="online-users">0</span></p>
+        <p><strong>Interest: </strong><span id="user-interest"></span></p>
         <div id="chat-messages"></div>
         <div class="input-group">
             <input type="text" id="message-input" placeholder="Type a message">
@@ -102,9 +118,11 @@
         </div>
     </div>
 
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script>
         let socket;
         let userEmail;
+        let userInterest;
 
         // Show login page initially
         document.getElementById('login-page').style.display = 'block';
@@ -115,32 +133,42 @@
             if (emailInput.endsWith('@nmamit.in')) {
                 userEmail = emailInput;
                 document.getElementById('login-page').style.display = 'none';
-                document.getElementById('chat-room').style.display = 'block';
-
-                // Connect to socket.io
-                socket = io('https://study-buddy-ts83.onrender.com');
-
-                // Notify server of the new user
-                socket.emit('user-joined', userEmail);
-
-                // Update online users
-                socket.on('update-users', (count) => {
-                    document.getElementById('online-users').innerText = count;
-                });
-
-                // Receive messages
-                socket.on('receive-message', (data) => {
-                    const chatMessages = document.getElementById('chat-messages');
-                    const messageDiv = document.createElement('div');
-                    messageDiv.classList.add('message');
-                    messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
-                    messageDiv.innerText = `${data.email}: ${data.message}`;
-                    chatMessages.appendChild(messageDiv);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                });
+                document.getElementById('interest-page').style.display = 'block';
             } else {
                 alert('Only NMAMIT email addresses are allowed!');
             }
+        }
+
+        // Handle interest selection
+        function selectInterest() {
+            userInterest = document.getElementById('interest').value;
+            document.getElementById('interest-page').style.display = 'none';
+            document.getElementById('chat-room').style.display = 'block';
+
+            // Connect to socket.io
+            socket = io('https://study-buddy-ts83.onrender.com');
+
+            // Notify server of the new user
+            socket.emit('user-joined', { email: userEmail, interest: userInterest });
+
+            // Update online users
+            socket.on('update-users', (data) => {
+                document.getElementById('online-users').innerText = data.count;
+            });
+
+            // Update user interest display
+            document.getElementById('user-interest').innerText = userInterest;
+
+            // Receive messages
+            socket.on('receive-message', (data) => {
+                const chatMessages = document.getElementById('chat-messages');
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
+                messageDiv.innerText = `${data.email}: ${data.message}`;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
         }
 
         // Send a message
@@ -153,7 +181,5 @@
             }
         }
     </script>
-
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </body>
 </html>
