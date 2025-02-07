@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express'); 
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -9,39 +9,47 @@ const io = new Server(server);
 // Serve static files (Frontend)
 app.use(express.static(__dirname));
 
-// Track online users
-let onlineUsers = 0;
+// Object to track online users in each subject
+const rooms = {};
 
 io.on('connection', (socket) => {
     console.log('A user connected');
-    onlineUsers++;
-    // Update all clients with online user count
-    io.emit('update-users', onlineUsers);
 
-    // Handle user joining
-    socket.on('user-joined', (email) => {
-        console.log(`${email} joined the chat`);
-    });
+    // Handle user joining a subject-based chat room
+    socket.on('join-room', ({ subject, email }) => {
+        socket.join(subject);
 
-    // Handle message sending
-    socket.on('send-message', (data) => {
-       
-        io.emit('receive-message', data); // Broadcast to all users
-    });
+        // Track users in the room
+        if (!rooms[subject]) {
+            rooms[subject] = new Set();
+        }
+        rooms[subject].add(socket.id);
 
-   
-    // Handle disconnection
-    socket.on('disconnect', () => {
+        console.log(`${email} joined ${subject} room`);
         
-        console.log('A user disconnected');
-        onlineUsers--;
-        io.emit('update-users', onlineUsers);
+        // Update online user count in that room
+        io.to(subject).emit('update-users', rooms[subject].size);
+    });
+
+    // Handle message sending within a subject room
+    socket.on('send-message', (data) => {
+        io.to(data.subject).emit('receive-message', data);
+    });
+
+    // Handle user disconnection
+    socket.on('disconnect', () => {
+        for (let subject in rooms) {
+            if (rooms[subject].has(socket.id)) {
+                rooms[subject].delete(socket.id);
+                io.to(subject).emit('update-users', rooms[subject].size);
+                console.log(`A user left ${subject} room`);
+            }
+        }
     });
 });
 
 // Start the server
 const PORT = 3000;
 server.listen(PORT, () => {
-   
     console.log(`Server is running on http://localhost:${PORT}`);
 });
