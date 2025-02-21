@@ -164,7 +164,6 @@
         // Show login page initially
         document.getElementById('login-page').style.display = 'block';
 
-        // Handle login
         function handleLogin() {
             const emailInput = document.getElementById('email').value;
             if (emailInput.endsWith('@nmamit.in')) {
@@ -172,68 +171,72 @@
                 document.getElementById('login-page').style.display = 'none';
                 document.getElementById('subject-page').style.display = 'block';
 
-                // Connect to socket.io
                 socket = io('https://study-buddy-ts83.onrender.com');
-
-                // Notify server of new user
                 socket.emit('user-joined', userEmail);
             } else {
                 alert('Only NMAMIT email addresses are allowed!');
             }
         }
 
-        // User selects a subject
         function joinSubject(subject) {
             currentSubject = subject;
             document.getElementById('subject-page').style.display = 'none';
             document.getElementById('chat-room').style.display = 'block';
             document.getElementById('room-title').innerText = subject + ' Chat Room';
 
-            // Show back button
             document.querySelector('.back-button').style.display = 'block';
 
-            // Join the specific subject room
             socket.emit('join-room', { subject, userEmail });
 
-            // Update online users in this room
+            // Clear previous messages when switching rooms
+            document.getElementById('chat-messages').innerHTML = '';
+
+            // Remove previous event listeners to prevent duplicate messages
+            socket.off('receive-message');
+
             socket.on('update-room-users', (count) => {
                 document.getElementById('online-users').innerText = count;
             });
 
-            // Receive messages
+            // Listen for messages only for this specific chatroom
             socket.on('receive-message', (data) => {
                 if (data.subject === currentSubject) {
-                    const chatMessages = document.getElementById('chat-messages');
-                    const messageDiv = document.createElement('div');
-                    messageDiv.classList.add('message');
-                    messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
-                    messageDiv.innerText = `${data.email}: ${data.message}`;
-                    chatMessages.appendChild(messageDiv);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    displayMessage(data);
                 }
             });
         }
 
-        // Send a message
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const message = messageInput.value.trim();
             if (message) {
-                socket.emit('send-message', { email: userEmail, message, subject: currentSubject });
+                const messageData = { email: userEmail, message, subject: currentSubject };
+                socket.emit('send-message', messageData);
+                displayMessage(messageData); // Display the message immediately
                 messageInput.value = '';
             }
         }
 
-        // Back button function to exit chat room and go back to subject selection
+        function displayMessage(data) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
+            messageDiv.innerText = `${data.email}: ${data.message}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
         function goBack() {
             document.getElementById('chat-room').style.display = 'none';
             document.getElementById('subject-page').style.display = 'block';
-            
-            // Hide back button
             document.querySelector('.back-button').style.display = 'none';
 
-            // Leave the current room
             socket.emit('leave-room', { subject: currentSubject, userEmail });
+
+            // Clear previous messages when leaving the room
+            document.getElementById('chat-messages').innerHTML = '';
+
             currentSubject = '';
         }
     </script>
