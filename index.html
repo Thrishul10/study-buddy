@@ -1,244 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Buddy</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: black; /* Black background */
-            color: white; /* White text */
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Study Buddy</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      color: white;
+    }
 
-        header {
-            background: #222;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            font-size: 1.5rem;
-        }
+    header {
+      background: #222;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-size: 1.5rem;
+    }
 
-        #login-page, #subject-page, #chat-room {
-            display: none;
-            margin: 50px auto;
-            text-align: center;
-            width: 80%;
-            max-width: 500px;
-        }
+    #login-page, #subject-page, #chat-room {
+      display: none;
+      margin: 50px auto;
+      text-align: center;
+      width: 80%;
+      max-width: 500px;
+    }
 
-        .input-group {
-            margin: 15px 0;
-        }
+    .input-group {
+      margin: 15px 0;
+    }
 
-        input {
-            padding: 10px;
-            width: 90%;
-            border: 1px solid #666;
-            border-radius: 5px;
-            font-size: 1rem;
-            background: #333;
-            color: white;
-        }
+    input {
+      padding: 10px;
+      width: 90%;
+      border: 1px solid #666;
+      border-radius: 5px;
+      font-size: 1rem;
+      background: #333;
+      color: white;
+    }
 
-        button {
-            padding: 10px 20px;
-            background: white;
-            color: black;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
+    button {
+      padding: 10px 20px;
+      background: white;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
 
-        button:hover {
-            background: #ccc;
-        }
+    button:hover {
+      background: #ccc;
+    }
 
-        #chat-messages {
-            border: 1px solid #666;
-            background: #222;
-            height: 300px;
-            overflow-y: scroll;
-            padding: 10px;
-            margin-bottom: 20px;
-            color: white;
-        }
+    .subject-btn {
+      display: block;
+      width: 80%;
+      margin: 10px auto;
+      padding: 10px;
+      font-size: 1.2rem;
+      text-align: center;
+      background: white;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-        .message {
-            margin: 5px 0;
-            padding: 5px;
-            border-radius: 5px;
-        }
+    .subject-btn:hover {
+      background: #ccc;
+    }
 
-        .own-message {
-            background: #444;
-            text-align: right;
-        }
+    .back-button {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      background: red;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none;
+    }
 
-        .other-message {
-            background: #666;
-        }
+    .back-button:hover {
+      background: darkred;
+    }
 
-        .subject-btn {
-            display: block;
-            width: 80%;
-            margin: 10px auto;
-            padding: 10px;
-            font-size: 1.2rem;
-            text-align: center;
-            background: white;
-            color: black;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+    /* ✅ Updated Chat Room Styling with Background */
+    #chat-room {
+      background-image: url("C:\Users\MAHE\Downloads\iPhone 16 Wallpapers _ HD & 4K Wallpapers for Apple iPhone.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
 
-        .subject-btn:hover {
-            background: #ccc;
-        }
+    #chat-messages {
+      border: 1px solid #666;
+      background: rgba(0, 0, 0, 0.7);
+      height: 300px;
+      overflow-y: scroll;
+      padding: 10px;
+      margin-bottom: 20px;
+      color: white;
+      border-radius: 10px;
+    }
 
-        .back-button {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            background: red;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            display: none; /* Initially hidden */
-        }
+    .message {
+      margin: 5px 0;
+      padding: 5px;
+      border-radius: 5px;
+    }
 
-        .back-button:hover {
-            background: darkred;
-        }
-    </style>
+    .own-message {
+      background: #444;
+      text-align: right;
+    }
+
+    .other-message {
+      background: #666;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <button class="back-button" onclick="goBack()">Back</button>
-        Study Buddy
-    </header>
+  <header>
+    <button class="back-button" onclick="goBack()">Back</button>
+    Study Buddy
+  </header>
 
-    <!-- Login Page -->
-    <div id="login-page">
-        <h2>Login</h2>
-        <div class="input-group">
-            <input type="email" id="email" placeholder="Enter your NMAMIT email" required>
-        </div>
-        <button onclick="handleLogin()">Login</button>
+  <!-- Login Page -->
+  <div id="login-page">
+    <h2>Login</h2>
+    <div class="input-group">
+      <input type="email" id="email" placeholder="Enter your NMAMIT email" required />
     </div>
+    <button onclick="handleLogin()">Login</button>
+  </div>
 
-    <!-- Subject Selection Page -->
-    <div id="subject-page">
-        <h2>Select a Subject</h2>
-        <button class="subject-btn" onclick="joinSubject('CS')">Computer Science</button>
-        <button class="subject-btn" onclick="joinSubject('Bio')">Biology</button>
-        <button class="subject-btn" onclick="joinSubject('Maths')">Mathematics</button>
-        <button class="subject-btn" onclick="joinSubject('Physics')">Physics</button>
-        <button class="subject-btn" onclick="joinSubject('Chemistry')">Chemistry</button>
-        <button class="subject-btn" onclick="joinSubject('Electronics')">Electronics</button>
+  <!-- Subject Selection Page -->
+  <div id="subject-page">
+    <h2>Select a Subject</h2>
+    <button class="subject-btn" onclick="joinSubject('CS')">Computer Science</button>
+    <button class="subject-btn" onclick="joinSubject('Bio')">Biology</button>
+    <button class="subject-btn" onclick="joinSubject('Maths')">Mathematics</button>
+    <button class="subject-btn" onclick="joinSubject('Physics')">Physics</button>
+    <button class="subject-btn" onclick="joinSubject('Chemistry')">Chemistry</button>
+    <button class="subject-btn" onclick="joinSubject('Electronics')">Electronics</button>
+  </div>
+
+  <!-- Chat Room -->
+  <div id="chat-room">
+    <h2 id="room-title">Chat Room</h2>
+    <p><strong>Online Users: </strong><span id="online-users">0</span></p>
+    <div id="chat-messages"></div>
+    <div class="input-group">
+      <input type="text" id="message-input" placeholder="Type a message" />
+      <button onclick="sendMessage()">Send</button>
     </div>
+  </div>
 
-    <!-- Chat Room -->
-    <div id="chat-room">
-        <h2 id="room-title">Chat Room</h2>
-        <p><strong>Online Users: </strong><span id="online-users">0</span></p>
-        <div id="chat-messages"></div>
-        <div class="input-group">
-            <input type="text" id="message-input" placeholder="Type a message">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    let socket;
+    let userEmail;
+    let currentSubject = '';
 
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script>
-        let socket;
-        let userEmail;
-        let currentSubject = '';
+    document.getElementById('login-page').style.display = 'block';
 
-        // Show login page initially
-        document.getElementById('login-page').style.display = 'block';
+    function handleLogin() {
+      const emailInput = document.getElementById('email').value;
+      if (emailInput.endsWith('@nmamit.in')) {
+        userEmail = emailInput;
+        document.getElementById('login-page').style.display = 'none';
+        document.getElementById('subject-page').style.display = 'block';
 
-        function handleLogin() {
-            const emailInput = document.getElementById('email').value;
-            if (emailInput.endsWith('@nmamit.in')) {
-                userEmail = emailInput;
-                document.getElementById('login-page').style.display = 'none';
-                document.getElementById('subject-page').style.display = 'block';
+        socket = io('https://study-buddy-ts83.onrender.com');
+        socket.emit('user-joined', userEmail);
+      } else {
+        alert('Only NMAMIT email addresses are allowed!');
+      }
+    }
 
-                socket = io('https://study-buddy-ts83.onrender.com');
-                socket.emit('user-joined', userEmail);
-            } else {
-                alert('Only NMAMIT email addresses are allowed!');
-            }
+    function joinSubject(subject) {
+      currentSubject = subject;
+      document.getElementById('subject-page').style.display = 'none';
+      document.getElementById('chat-room').style.display = 'block';
+      document.getElementById('room-title').innerText = subject + ' Chat Room';
+      document.querySelector('.back-button').style.display = 'block';
+
+      socket.emit('join-room', { subject, userEmail });
+
+      document.getElementById('chat-messages').innerHTML = '';
+      socket.off('receive-message');
+
+      socket.on('update-room-users', (count) => {
+        document.getElementById('online-users').innerText = count;
+      });
+
+      socket.on('receive-message', (data) => {
+        if (data.subject === currentSubject) {
+          displayMessage(data);
         }
+      });
+    }
 
-        function joinSubject(subject) {
-            currentSubject = subject;
-            document.getElementById('subject-page').style.display = 'none';
-            document.getElementById('chat-room').style.display = 'block';
-            document.getElementById('room-title').innerText = subject + ' Chat Room';
+    function sendMessage() {
+      const messageInput = document.getElementById('message-input');
+      const message = messageInput.value.trim();
+      if (message) {
+        const messageData = { email: userEmail, message, subject: currentSubject };
+        socket.emit('send-message', messageData);
+        displayMessage(messageData);
+        messageInput.value = '';
+      }
+    }
 
-            document.querySelector('.back-button').style.display = 'block';
+    function displayMessage(data) {
+      const chatMessages = document.getElementById('chat-messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message');
+      messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
+      messageDiv.innerText = ${data.email}: ${data.message};
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
-            socket.emit('join-room', { subject, userEmail });
+    function goBack() {
+      document.getElementById('chat-room').style.display = 'none';
+      document.getElementById('subject-page').style.display = 'block';
+      document.querySelector('.back-button').style.display = 'none';
 
-            // Clear previous messages when switching rooms
-            document.getElementById('chat-messages').innerHTML = '';
-
-            // Remove previous event listeners to prevent duplicate messages
-            socket.off('receive-message');
-
-            socket.on('update-room-users', (count) => {
-                document.getElementById('online-users').innerText = count;
-            });
-
-            // Listen for messages only for this specific chatroom
-            socket.on('receive-message', (data) => {
-                if (data.subject === currentSubject) {
-                    displayMessage(data);
-                }
-            });
-        }
-
-        function sendMessage() {
-            const messageInput = document.getElementById('message-input');
-            const message = messageInput.value.trim();
-            if (message) {
-                const messageData = { email: userEmail, message, subject: currentSubject };
-                socket.emit('send-message', messageData);
-                displayMessage(messageData); // Display the message immediately
-                messageInput.value = '';
-            }
-        }
-
-        function displayMessage(data) {
-            const chatMessages = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-           messageDiv.classList.add('message');
-            messageDiv.classList.add(data.email === userEmail ? 'own-message' : 'other-message');
-            messageDiv.innerText = `${data.email}: ${data.message}`;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function goBack() {
-            document.getElementById('chat-room').style.display = 'none';
-            document.getElementById('subject-page').style.display = 'block';
-            document.querySelector('.back-button').style.display = 'none';
-
-            socket.emit('leave-room', { subject: currentSubject, userEmail });
-
-            // Clear previous messages when leaving the room
-            document.getElementById('chat-messages').innerHTML = '';
-
-            currentSubject = '';
-        }
-    </script>
+      socket.emit('leave-room', { subject: currentSubject, userEmail });
+      document.getElementById('chat-messages').innerHTML = '';
+      currentSubject = '';
+    }
+  </script>
 </body>
 </html>
