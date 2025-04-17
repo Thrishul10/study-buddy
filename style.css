@@ -124,13 +124,19 @@ body {
     display: none;
     margin: 50px auto;
     text-align: center;
-    width: 80%;
-    max-width: 500px;
+    max-width: 1800px;
+    height:100vh;
+    align-items: center;
+    width:100%;
+    background:url('https://i.postimg.cc/hvsJZg7j/Whats-App-Image-2025-04-17-at-12-30-14-c882fa3e.jpg') no-repeat;
+    background-size:cover;
+    background-position:center;
+
   }
   
   .subject-btn {
     display: block;
-    width: 80%;
+    width: 40%;
     margin: 10px auto;
     padding: 10px;
     font-size: 1.2rem;
