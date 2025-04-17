@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+
 body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
@@ -6,13 +8,7 @@ body {
     color: white;
   }
   
-  header {
-    background: #222;
-    color: white;
-    text-align: center;
-    padding: 10px;
-    font-size: 1.5rem;
-  }
+  
   
   .back-button {
     position: absolute;
@@ -33,18 +29,26 @@ body {
   
   /* Login Box */
   .wrapper {
-    display: none;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+  display:flex;
+  justify-content:center;
+  align-items: center;
+  height:100vh;
+  width:100%;
+  background:url('https://i.postimg.cc/0NFQHqq0/Chat-GPT-Image-Apr-17-2025-12-03-28-PM.png') no-repeat;
+  background-size:cover;
+  background-position:center;
+
   }
   
   .login_box {
-    background-color: #222;
+    background: transparent;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 10 rgba(0, 0, 0, 0.2);
+
     padding: 30px;
     border-radius: 10px;
     width: 500px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
   
   .login-header span {
@@ -60,7 +64,7 @@ body {
   .input-field {
     width: 100%;
     padding: 10px 10px 10px 2px;
-    background: #333;
+    background: transparent;
     border: 1px solid #666;
     color: white;
     border-radius: 5px;
@@ -94,8 +98,8 @@ body {
     width: 100%;
     padding: 10px;
     border: none;
-    background: white;
-    color: black;
+    background: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
     font-weight: bold;
     border-radius: 5px;
     cursor: pointer;
@@ -112,16 +116,7 @@ body {
     color: #aaa;
   }
   
-  .register {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 0.9rem;
-  }
   
-  .register a,
-  .forgot a {
-    color: #ccc;
-  }
   
   /* Subject Selection */
   #subject-page,
@@ -177,7 +172,10 @@ body {
   
   input[type="text"],
   input[type="email"] {
-    background: #333;
+    background: transparent;
     color: white;
+    border: 1px solid #666;
+    border-radius: 5px;
+    box-shadow: 0 0 10 rgba(0, 0, 0, 0.2);
   }
   
